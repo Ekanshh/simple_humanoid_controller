@@ -4,9 +4,9 @@
 
 #include "api.h"
 
-struct NewController_DLLAPI NewController : public mc_control::MCController
+struct SimpleHumanoidController_DLLAPI SimpleHumanoidController : public mc_control::MCController
 {
-  NewController(mc_rbdyn::RobotModulePtr rm, double dt, const mc_rtc::Configuration & config);
+  SimpleHumanoidController(mc_rbdyn::RobotModulePtr rm, double dt, const mc_rtc::Configuration & config);
 
   bool run() override;
 

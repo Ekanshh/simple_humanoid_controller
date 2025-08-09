@@ -4,6 +4,7 @@ mc_rtc new controller template
 This project is a template for a new controller project wihtin [mc_rtc]
 
 It comes with:
+
 - a CMake project that can build a controller in [mc_rtc], the project can be put within [mc_rtc] source-tree for easier updates
 - clang-format files
 - automated GitHub Actions builds on three major platforms

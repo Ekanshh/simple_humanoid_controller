@@ -1,3 +1,263 @@
+---
 MainRobot: JVRC1
 Enabled:
   - SimpleHumanoidController
+
+# General state settings
+Managed: false
+StepByStep: false
+IdleKeepState: false
+StatesLibraries:
+- "@MC_STATES_DEFAULT_RUNTIME_INSTALL_PREFIX@"
+- "@MC_STATES_RUNTIME_INSTALL_PREFIX@"
+StatesFiles:
+- "@MC_STATES_DEFAULT_RUNTIME_INSTALL_PREFIX@/data"
+- "@MC_STATES_RUNTIME_INSTALL_PREFIX@/data"
+VerboseStateFactory: false
+VerboseLoader: false
+
+
+# Additional robots to load
+robots: 
+  ground:
+    module: env/ground
+
+# Constraints to apply to the robot
+constraints:
+- type: contact # TODO: figure out what it does
+- type: dynamics
+  damper: [0.1, 0.01, 0.5]
+- type: compoundJoint
+collisions:
+- type: collision
+  useCommon: true
+contacts: 
+- r1: jvrc1
+  r1Surface: LeftFoot
+  r2: ground
+  r2Surface: AllGround
+- r1: jvrc1
+  r1Surface: RightFoot
+  r2: ground
+  r2Surface: AllGround
+
+# Some options for a specific robot
+jvrc1:
+  posture:
+    weight: 20.0
+    stiffness: 1.0
+
+states:
+  
+  SimpleHumanoidController::BaseStabilization:
+    base: MetaTasks
+    tasks:
+      CoM:
+        type: com
+        above: [LeftFoot, RightFoot]
+        weight: 100
+        stiffness: 1.0
+      KeepChest:
+        type: orientation
+        frame: WAIST_R_S
+        weight: 100
+        stiffness: 1.0
+
+  SimpleHumanoidController::Initial:
+    base: SimpleHumanoidController::BaseStabilization
+
+  SimpleHumanoidController::LeftHandToTarget:
+    base: SimpleHumanoidController::BaseStabilization
+    tasks:
+      LeftHandTask:
+        type: transform
+        surface: LeftGripper 
+        weight: 1000
+        stiffness: 10
+        damping: 20
+        target:
+          translation: [0.5, 0.25, 1.1]
+          rotation: [0, 0.7, 0, 0.7]
+        completion:
+          AND:
+            - eval: 0.5
+            - speed: 1e-4
+            
+      LookAtLeftHand:
+        type: lookAtSurface
+        frame: dcamera
+        frameVector: [0, 0, 1]
+        weight: 500
+        stiffness: 5
+        damping: 10
+        target:
+          frame: LeftGripper
+
+  SimpleHumanoidController::LeftHandToInitial:
+    base: SimpleHumanoidController::BaseStabilization
+    tasks:
+      LeftHandTask:
+        type: surfaceTransform
+        surface: LeftGripper
+        weight: 1000
+        stiffness: 10
+        damping: 20
+        target:
+          translation: [0.162812, 0.332597, 0.745862]
+          rotation: [ 0.0803567, 0.972221, -0.0251818, 0.218394]
+        completion:
+          AND:
+            - eval: 0.5
+            - speed: 1e-4
+      LookAtLeftHand:
+        type: lookAtSurface
+        frame: dcamera
+        frameVector: [0, 0, 1]
+        weight: 500
+        stiffness: 5
+        damping: 10
+        target:
+          frame: LeftGripper
+
+  SimpleHumanoidController::RightHandToTarget:
+    base: SimpleHumanoidController::BaseStabilization
+    tasks:
+      RightHandTask:
+        type: surfaceTransform
+        surface: RightGripper
+        weight: 1000
+        stiffness: 10
+        damping: 20
+        target:
+          translation: [0.5, -0.25, 1.1]
+          rotation: [0, 0.7, 0, 0.7]
+        completion:
+          AND:
+            - eval: 0.5
+            - speed: 1e-4
+      LookAtRightHand:
+        type: lookAtSurface
+        frame: dcamera
+        frameVector: [0, 0, 1]
+        weight: 500
+        stiffness: 5
+        damping: 10
+        target:
+          frame: RightGripper
+
+  SimpleHumanoidController::RightHandToInitial:
+    base: SimpleHumanoidController::BaseStabilization
+    tasks:
+      RightHandTask:
+        type: surfaceTransform
+        surface: RightGripper
+        weight: 1000
+        stiffness: 10
+        damping: 20
+        target:
+          translation: [0.162812, -0.332597, 0.745862]
+          rotation: [-0.081905, 0.972091, 0.0248339, 0.218434]
+        completion:
+          AND:
+            - eval: 0.5
+            - speed: 1e-4
+      LookAtRightHand:
+        type: lookAtSurface
+        frame: dcamera
+        frameVector: [0, 0, 1]
+        weight: 500
+        stiffness: 5
+        damping: 10
+        target:
+          frame: RightGripper
+
+  SimpleHumanoidController::BothHandsToTarget:
+    base: SimpleHumanoidController::BaseStabilization
+    tasks:
+      LeftHandTask:
+        type: surfaceTransform
+        surface: LeftGripper
+        weight: 1000
+        stiffness: 10
+        damping: 20
+        target:
+          translation: [0.5, 0.25, 1.1]
+          rotation: [0, 0.7, 0, 0.7]
+        completion:
+          AND:
+            - eval: 0.5
+            - speed: 1e-4
+      RightHandTask:
+        type: surfaceTransform
+        surface: RightGripper
+        weight: 1000
+        stiffness: 10
+        damping: 20
+        target:
+          translation: [0.5, -0.25, 1.1]
+          rotation: [0, 0.7, 0, 0.7]
+        completion:
+          AND:
+            - eval: 0.5
+            - speed: 1e-4
+      LookForward:
+        type: posture
+        activeJoints: ["NECK_Y", "NECK_R", "NECK_P"]
+        weight: 1000
+        stiffness: 10
+        damping: 20
+        posture:
+          - [0.0]  
+          - [0.0]  
+          - [0.0]  
+
+  SimpleHumanoidController::BothHandsToInitial:
+    base: SimpleHumanoidController::BaseStabilization
+    tasks:
+      LeftHandTask:
+        type: surfaceTransform
+        surface: LeftGripper
+        weight: 1000
+        stiffness: 5
+        target:
+          translation: [0.162812, 0.332597, 0.745862]
+          rotation:  [0.0803567, 0.972221, -0.0251818, 0.218394]
+        completion:
+          AND:
+            - eval: 0.5
+            - speed: 1e-4
+      RightHandTask:
+        type: surfaceTransform
+        surface: RightGripper
+        weight: 1000
+        stiffness: 5
+        target:
+          translation: [0.162812, -0.332597, 0.745862]
+          rotation: [-0.081905, 0.972091, 0.0248339, 0.218434]
+        completion:
+          AND:
+            - eval: 0.5
+            - speed: 1e-4 
+      LookForward:
+        type: posture
+        activeJoints: ["NECK_Y", "NECK_R", "NECK_P"]
+        weight: 1000
+        stiffness: 10
+        damping: 20
+        posture:
+          - [0.0]  
+          - [0.0]  
+          - [0.0]  
+
+
+transitions:
+  - [SimpleHumanoidController::Initial, OK, SimpleHumanoidController::LeftHandToTarget, Auto]
+  - [SimpleHumanoidController::LeftHandToTarget, OK, SimpleHumanoidController::LeftHandToInitial, Auto]
+  - [SimpleHumanoidController::LeftHandToInitial, OK, SimpleHumanoidController::RightHandToTarget, Auto]
+  - [SimpleHumanoidController::RightHandToTarget, OK, SimpleHumanoidController::RightHandToInitial, Auto]
+  - [SimpleHumanoidController::RightHandToInitial, OK, SimpleHumanoidController::BothHandsToTarget, Auto]
+  - [SimpleHumanoidController::BothHandsToTarget, OK, SimpleHumanoidController::BothHandsToInitial, Auto]
+  - [SimpleHumanoidController::BothHandsToInitial, OK, SimpleHumanoidController::LeftHandToTarget, Auto]
+
+
+init: SimpleHumanoidController::Initial

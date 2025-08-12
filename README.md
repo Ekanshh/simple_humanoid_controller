@@ -69,7 +69,9 @@ mc_rtc_ticker
 
 ## Demo Video
 
-📹 *Coming soon* — A short video demonstrating the controller in action will be added here.
+<sub><em>The demo showcases the robot executing the controller sequence at 2× speed. Click to watch!</em></sub>
+
+[![Demo Video](media/demo_2x.png)](media/demo_2x.webm)
 
 ---
 

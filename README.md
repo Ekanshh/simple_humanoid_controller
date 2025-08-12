@@ -23,9 +23,11 @@ The controller continuously cycles through the following actions:
 
 ### 1. Prepare the mc\_rtc development environment
 
-Follow the [mc-rtc-superbuild devcontainer setup guide](https://github.com/mc-rtc/mc-rtc-superbuild/blob/main/doc/devcontainer.md) to set up the development environment.
+Follow the [mc-rtc-superbuild devcontainer setup guide](https://github.com/mc-rtc/mc-rtc-superbuild/blob/main/doc/devcontainer.md) to setup the development environment.
 
-### 2. Clone this repository into your superbuild `extensions` directory
+### 2. Clone this repository as an `mc-rtc-superbuild` extension
+
+Follow the instructions below to clone this repository as an `mc-rtc-superbuild` extension. Be sure to use the correct path to your superbuild directory.
 
 ```bash
 mkdir -p <path>/mc-rtc-superbuild/extensions/local/
@@ -33,13 +35,13 @@ cd <path>/mc-rtc-superbuild/extensions/local/
 git clone git@github.com:Ekanshh/simple_humanoid_controller_superbuild.git
 ```
 
-### 3. Build the superbuild with the new extension
+### 3. Build `mc-rtc-superbuild` with the new extension
 
-This will make `SimpleHumanoidController` available in your mc\_rtc installation.
+Refer to the setup instructions as earlier and build the `mc-rtc-superbuild` with the new extension. A successful build will make `SimpleHumanoidController` available in your mc\_rtc installation.
 
 ### 4. Enable the controller in mc\_rtc configuration
 
-Edit your mc\_rtc configuration file (Linux: `$HOME/.config/mc_rtc/mc_rtc.yaml`):
+Now, edit your mc\_rtc configuration file (Linux: `$HOME/.config/mc_rtc/mc_rtc.yaml`) to enable the controller:
 
 ```yaml
 MainRobot: JVRC1
@@ -69,7 +71,7 @@ mc_rtc_ticker
 
 ## Demo Video
 
-<sub><em>The demo showcases the robot executing the controller sequence at 2× speed. Click to watch!</em></sub>
+<sub><em>The demo showcases the robot executing the controller sequence at 2× speed. Click to download and watch!</em></sub>
 
 [![Demo Video](media/demo_2x.png)](media/demo_2x.webm)
 

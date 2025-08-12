@@ -1,303 +1,189 @@
 ---
 # General state settings
 Managed: false #  if true, the FSM is managed, otherwise it is not
-StepByStep: false   #  if true, transitions that are tagged as StepByStep will behave as Strict transitions, otherwise they behave as Auto transitions
-IdleKeepState: false  #  if true, the state is kept alive until the transition is triggered by the user
-StatesLibraries:  # where to look for states libraries
-- "@MC_STATES_DEFAULT_RUNTIME_INSTALL_PREFIX@"
-- "@MC_STATES_RUNTIME_INSTALL_PREFIX@"
-StatesFiles:  #  where to look for states configuration files
-- "@MC_STATES_DEFAULT_RUNTIME_INSTALL_PREFIX@/data"
-- "@MC_STATES_RUNTIME_INSTALL_PREFIX@/data"
+StepByStep: false #  if true, transitions that are tagged as StepByStep will behave as Strict transitions, otherwise they behave as Auto transitions
+IdleKeepState: false #  if true, the state is kept alive until the transition is triggered by the user
+StatesLibraries: # where to look for states libraries
+  - "@MC_STATES_DEFAULT_RUNTIME_INSTALL_PREFIX@"
+  - "@MC_STATES_RUNTIME_INSTALL_PREFIX@"
+StatesFiles: #  where to look for states configuration files
+  - "@MC_STATES_DEFAULT_RUNTIME_INSTALL_PREFIX@/data"
+  - "@MC_STATES_RUNTIME_INSTALL_PREFIX@/data"
 VerboseStateFactory: false # if true, the state factory will provide more information while loading libraries, this is useful for debugging
 VerboseState: false
-robots:   # Additional robots (i.e. objects) to load apart from main robot
+robots: # Additional robots (i.e. objects) to load apart from main robot
   ground:
     module: env/ground
 
 # General constraints to include in the optimization problem, each constraint is representation of a mc_solver::ConstraintSet object
 constraints:
-- type: contact # Handle geometric constraints on contacts
-- type: dynamics # Handle dynamics constraints (equation of motion) for a robot
-  damper: [0.1, 0.01, 0.5]
-- type: compoundJoint #  Enforces mechanical coupling between linked joints as defined in the robot model
-  useCommon: true
+  - type: contact # Handle geometric constraints on contacts
+  - type: dynamics # Handle dynamics constraints (equation of motion) for a robot
+    damper: [0.1, 0.01, 0.5]
+  - type: compoundJoint #  Enforces mechanical coupling between linked joints as defined in the robot model
+    useCommon: true
 
-# Setup foot contacts 
-contacts: 
-- r1: jvrc1
-  r1Surface: LeftFoot
-  r2: ground
-  r2Surface: AllGround
-- r1: jvrc1
-  r1Surface: RightFoot
-  r2: ground
-  r2Surface: AllGround
+# Setup foot contacts
+contacts:
+  - r1: jvrc1
+    r1Surface: LeftFoot
+    r2: ground
+    r2Surface: AllGround
+  - r1: jvrc1
+    r1Surface: RightFoot
+    r2: ground
+    r2Surface: AllGround
 
 # Robot specific options
 jvrc1:
   posture:
-    weight: 50.0
     stiffness: 1.0
-    damping: 2.0
-
+    weight: 10.0
 
 # FSM states
 states:
-
-  # Base stabilization state
-  SimpleHumanoidController::BaseStabilization:
+  SimpleHumanoidController::BaseStabilize:
     base: MetaTasks
     tasks:
       CoM:
         type: com
         above: [LeftFoot, RightFoot]
         weight: 2000
-        stiffness: 1.0
-        damping: 2.0
-
+        stiffness: 5
       KeepChest:
         type: orientation
         frame: WAIST_R_S
-        weight: 200
-        stiffness: 1.0
-        damping: 2.0
+        weight: 100
+        stiffness: 1
 
-  # Initial state
-  SimpleHumanoidController::Initial:
-    base: SimpleHumanoidController::BaseStabilization
+  SimpleHumanoidController::LookForward:
+    base: MetaTasks
+    tasks:
+      LookForward:
+        type: posture
+        activeJoints: ["NECK_P", "NECK_Y"]
+        weight: 500
+        stiffness: 5.0
+        damping: 5.0
+        posture:
+          - [0.0]
+          - [0.0]
+        completion:
+          AND:
+            - eval: 0.05
+            - speed: 1e-4
 
-  # Left hand to target state and look at moving arm
+  SimpleHumanoidController::BaseLookAtHand:
+    base: MetaTasks
+    tasks:
+      LookAtHand:
+        type: lookAtSurface
+        frame: camera_frame
+        frameVector: [0, 0, 1]
+        weight: 300
+        stiffness: 5.0
+        damping: 5.0
+        activeJoints: ["NECK_P", "NECK_Y"]
+        target:
+          frame: target_hand_frame
+        completion:
+          AND:
+            - eval: 0.05
+            - speed: 1e-4
+
+  SimpleHumanoidController::LookAtLeftHand:
+    base: SimpleHumanoidController::BaseLookAtHand
+    tasks:
+      LookAtHand:
+        name: LookAtLeftHand
+        frame: lcamera
+        target:
+          frame: LeftGripper
+
+  SimpleHumanoidController::LookAtRightHand:
+    base: SimpleHumanoidController::BaseLookAtHand
+    tasks:
+      LookAtHand:
+        name: LookAtRightHand
+        frame: rcamera
+        target:
+          frame: RightGripper
+
+  SimpleHumanoidController::MoveLeftHandToInitial:
+    base: SimpleHumanoidController_BaseMoveHand
+    hand_frame_id: LeftGripper
+    hand_pose_key: LeftHandInitialPose
+    transform_task_name: MoveLeftHandToInitial
+
+  SimpleHumanoidController::MoveLeftHandToTarget:
+    base: SimpleHumanoidController_BaseMoveHand
+    hand_frame_id: LeftGripper
+    target_pos: [0.5, 0.25, 1.1]
+    target_quat: [0, 0.7, 0, 0.7]
+    transform_task_name: MoveLeftHandToTarget
+
+  SimpleHumanoidController::MoveRightHandToInitial:
+    base: SimpleHumanoidController_BaseMoveHand
+    hand_frame_id: RightGripper
+    hand_pose_key: RightHandInitialPose
+    transform_task_name: MoveRightHandToInitial
+
+  SimpleHumanoidController::MoveRightHandToTarget:
+    base: SimpleHumanoidController_BaseMoveHand
+    hand_frame_id: RightGripper
+    target_pos: [0.5, -0.25, 1.1]
+    target_quat: [0, 0.7, 0, 0.7]
+    transform_task_name: MoveRightHandToTarget
+
   SimpleHumanoidController::LeftHandToTarget:
-    base: SimpleHumanoidController::BaseStabilization
-    tasks:
-      LeftHandTrajectoryTarget:
-        type: transform
-        frame: LeftGripper 
-        weight: 1000
-        stiffness: 5
-        damping: 10
-        target:
-          translation: [0.5, 0.25, 1.1]
-          rotation: [0, 0.7, 0, 0.7]
-        completion:
-          AND:
-            - eval: 0.1
-            - speed: 1e-4
-            
-      LookAtLeftHandTarget:
-        type: lookAtSurface
-        frame: lcamera
-        frameVector: [0, 0, 1]
-        weight: 300
-        stiffness: 3.0
-        damping: 10.0
-        activeJoints: ["NECK_P", "NECK_Y"]
-        target:
-          frame: LeftGripper
-        completion:
-          AND:
-            - eval: 0.1
-            - speed: 1e-4
+    base: Parallel
+    states: ["SimpleHumanoidController::MoveLeftHandToTarget", "SimpleHumanoidController::LookAtLeftHand"]
 
-  # Left hand to initial state and look at moving arm
-  SimpleHumanoidController::LeftHandToInitial:
-    base: SimpleHumanoidController::BaseStabilization
-    tasks:
-      LeftHandTrajectoryInitial:
-        type: transform
-        frame: LeftGripper
-        weight: 1000
-        stiffness: 5
-        damping: 10
-        target:
-          translation: [0.162812, 0.332597, 0.745862]
-          rotation: [ 0.0803567, 0.972221, -0.0251818, 0.218394]
-        completion:
-          AND:
-            - eval: 0.1
-            - speed: 1e-4
-
-      LookAtLeftHandInitial:
-        type: lookAtSurface
-        frame: lcamera
-        frameVector: [0, 0, 1]
-        weight: 300
-        stiffness: 3.0
-        damping: 10.0
-        activeJoints: ["NECK_P", "NECK_Y"]
-        target:
-          frame: LeftGripper
-        completion:
-          AND:
-            - eval: 0.1
-            - speed: 1e-4
-
-  # Right hand to target state and look at moving arm
   SimpleHumanoidController::RightHandToTarget:
-    base: SimpleHumanoidController::BaseStabilization
-    tasks:
-      RightHandTrajectoryTarget:
-        type: transform
-        frame: RightGripper
-        weight: 1000
-        stiffness: 5
-        damping: 10
-        target:
-          translation: [0.5, -0.25, 1.1]
-          rotation: [0, 0.7, 0, 0.7]
-        completion:
-          AND:
-            - eval: 0.1
-            - speed: 1e-4
+    base: Parallel
+    states: ["SimpleHumanoidController::MoveRightHandToTarget", "SimpleHumanoidController::LookAtRightHand"]
 
-      LookAtRightHandTarget:
-        type: lookAtSurface
-        frame: rcamera
-        frameVector: [0, 0, 1]
-        weight: 300
-        stiffness: 3.0
-        damping: 10.0
-        activeJoints: ["NECK_P", "NECK_Y"]
-        target:
-          frame: RightGripper
-        completion:
-          AND:
-            - eval: 0.1
-            - speed: 1e-4
+  SimpleHumanoidController::LeftHandToInitial:
+    base: Parallel
+    states: ["SimpleHumanoidController::MoveLeftHandToInitial", "SimpleHumanoidController::LookAtLeftHand"]
 
-  # Right hand to initial state and look at moving arm
   SimpleHumanoidController::RightHandToInitial:
-    base: SimpleHumanoidController::BaseStabilization
-    tasks:
-      RightHandTrajectoryInitial:
-        type: transform
-        frame: RightGripper
-        weight: 1000
-        stiffness: 5
-        damping: 10
-        target:
-          translation: [0.162812, -0.332597, 0.745862]
-          rotation: [-0.081905, 0.972091, 0.0248339, 0.218434]
-        completion:
-          AND:
-            - eval: 0.1
-            - speed: 1e-4
+    base: Parallel
+    states: ["SimpleHumanoidController::MoveRightHandToInitial", "SimpleHumanoidController::LookAtRightHand"]
 
-      LookAtRightHandInitial:
-        type: lookAtSurface
-        frame: rcamera
-        frameVector: [0, 0, 1]
-        weight: 300
-        stiffness: 5
-        damping: 10
-        activeJoints: ["NECK_P", "NECK_Y"]
-        target:
-          frame: RightGripper
-        completion:
-          AND:
-            - eval: 0.1
-            - speed: 1e-4
-
-  # Both hands to target state and look forward
   SimpleHumanoidController::BothHandsToTarget:
-    base: SimpleHumanoidController::BaseStabilization
-    tasks:
-      LeftHandTrajectoryTarget:
-        type: transform
-        frame: LeftGripper
-        weight: 1000
-        stiffness: 5
-        damping: 10
-        target:
-          translation: [0.5, 0.25, 1.1]
-          rotation: [0, 0.7, 0, 0.7]
-        completion:
-          AND:
-            - eval: 0.1
-            - speed: 1e-4
+    base: Parallel
+    states:
+      [
+        "SimpleHumanoidController::MoveLeftHandToTarget",
+        "SimpleHumanoidController::MoveRightHandToTarget",
+        "SimpleHumanoidController::LookForward",
+      ]
 
-      RightHandTrajectoryTarget:
-        type: transform
-        frame: RightGripper
-        weight: 1100
-        stiffness: 5
-        damping: 10
-        target:
-          translation: [0.5, -0.25, 1.1]
-          rotation: [0, 0.7, 0, 0.7]
-        completion:
-          AND:
-            - eval: 0.1
-            - speed: 1e-4
-
-      LookForwardTarget:
-        type: posture
-        activeJoints: ["NECK_P", "NECK_Y"]
-        weight: 500
-        stiffness: 5
-        damping: 5
-        posture:
-          - [0.0]  
-          - [0.0] 
-        completion:
-          AND:
-            - eval: 0.1
-            - speed: 1e-4
-
-  # Both hands to initial state and look forward
   SimpleHumanoidController::BothHandsToInitial:
-    base: SimpleHumanoidController::BaseStabilization
-    tasks:
-      LeftHandTrajectoryInitial:
-        type: transform
-        frame: LeftGripper
-        weight: 1100
-        stiffness: 5
-        damping: 10
-        target:
-          translation: [0.162812, 0.332597, 0.745862]
-          rotation:  [0.0803567, 0.972221, -0.0251818, 0.218394]
-        completion:
-          AND:
-            - eval: 0.1
-            - speed: 1e-4
+    base: Parallel
+    states:
+      [
+        "SimpleHumanoidController::MoveLeftHandToInitial",
+        "SimpleHumanoidController::MoveRightHandToInitial",
+        "SimpleHumanoidController::LookForward",
+      ]
 
-      RightHandTrajectoryInitial:
-        type: transform
-        frame: RightGripper
-        weight: 1000
-        stiffness: 5
-        damping: 10
-        target:
-          translation: [0.162812, -0.332597, 0.745862]
-          rotation: [-0.081905, 0.972091, 0.0248339, 0.218434]
-        completion:
-          AND:
-            - eval: 0.1
-            - speed: 1e-4 
+  SimpleHumanoidController::ExecuteFSM:
+    base: Meta
+    transitions:
+      - [SimpleHumanoidController::LeftHandToTarget, OK, SimpleHumanoidController::LeftHandToInitial, Auto]
+      - [SimpleHumanoidController::LeftHandToInitial, OK, SimpleHumanoidController::RightHandToTarget, Auto]
+      - [SimpleHumanoidController::RightHandToTarget, OK, SimpleHumanoidController::RightHandToInitial, Auto]
+      - [SimpleHumanoidController::RightHandToInitial, OK, SimpleHumanoidController::BothHandsToTarget, Auto]
+      - [SimpleHumanoidController::BothHandsToTarget, OK, SimpleHumanoidController::BothHandsToInitial, Auto]
+      - [SimpleHumanoidController::BothHandsToInitial, OK, SimpleHumanoidController::LeftHandToTarget, Auto]
 
-      LookForwardInitial:
-        type: posture
-        activeJoints: ["NECK_P", "NECK_Y"]
-        weight: 500
-        stiffness: 5
-        damping: 5
-        posture:
-          - [0.0]  
-          - [0.0]  
-        completion:
-          AND:
-            - eval: 0.1
-            - speed: 1e-4
+  SimpleHumanoidController::Demo:
+    base: Parallel
+    states: ["SimpleHumanoidController::BaseStabilize", "SimpleHumanoidController::ExecuteFSM"]
+
 transitions:
-  - [SimpleHumanoidController::Initial, OK, SimpleHumanoidController::LeftHandToTarget, Auto]
-  - [SimpleHumanoidController::LeftHandToTarget, OK, SimpleHumanoidController::LeftHandToInitial, Auto]
-  - [SimpleHumanoidController::LeftHandToInitial, OK, SimpleHumanoidController::RightHandToTarget, Auto]
-  - [SimpleHumanoidController::RightHandToTarget, OK, SimpleHumanoidController::RightHandToInitial, Auto]
-  - [SimpleHumanoidController::RightHandToInitial, OK, SimpleHumanoidController::BothHandsToTarget, Auto]
-  - [SimpleHumanoidController::BothHandsToTarget, OK, SimpleHumanoidController::BothHandsToInitial, Auto]
-  - [SimpleHumanoidController::BothHandsToInitial, OK, SimpleHumanoidController::LeftHandToTarget, Auto]
+  - [SimpleHumanoidController::Demo, OK, SimpleHumanoidController::Demo, Auto]
 
-
-init: SimpleHumanoidController::Initial
+init: SimpleHumanoidController::Demo

@@ -1,30 +1,87 @@
-mc_rtc new controller template
-==
+# Simple Humanoid Controller
 
-This project is a template for a new controller project wihtin [mc_rtc]
+This project implements a simple (FSM-based) controller for the **JVRC-1 humanoid robot** using the [mc\_rtc](https://jrl-umi3218.github.io/mc_rtc/) framework. It performs a predefined sequence of arm and gaze movements for demonstration and testing purposes.
 
-It comes with:
+---
 
-- a CMake project that can build a controller in [mc_rtc], the project can be put within [mc_rtc] source-tree for easier updates
-- clang-format files
-- automated GitHub Actions builds on three major platforms
+## Overview
 
-Quick start
---
+The controller continuously cycles through the following actions:
 
-1. Renaming the controller from `NewController` to `MyController`. In a shell (Git Bash on Windows, replace sed with gsed on macOS):
+1. Move the **left hand** to a target pose, then return it to its initial pose.
+2. Move the **right hand** to a target pose, then return it to its initial pose.
+3. Move **both hands** to their target poses, then return them to their initial poses.
+
+**Gaze behavior:**
+
+* When a single hand is moving, the robot looks at that hand.
+* When both hands are moving together, the robot looks straight ahead.
+
+---
+
+## Installation
+
+### 1. Prepare the mc\_rtc development environment
+
+Follow the [mc-rtc-superbuild devcontainer setup guide](https://github.com/mc-rtc/mc-rtc-superbuild/blob/main/doc/devcontainer.md) to set up the development environment.
+
+### 2. Clone this repository into your superbuild `extensions` directory
 
 ```bash
-sed -i -e's/NewController/MyController/g' `find . -type f`
-git mv src/NewController.cpp src/MyController.cpp
-git mv src/NewController.h src/MyController.h
-git mv etc/NewController.in.yaml etc/MyController.in.yaml
+mkdir -p <path>/mc-rtc-superbuild/extensions/local/
+cd <path>/mc-rtc-superbuild/extensions/local/
+git clone git@github.com:Ekanshh/simple_humanoid_controller_superbuild.git
 ```
 
-2. You can customize the project name in vcpkg.json as well, note that this must follow [vcpkg manifest rules](https://github.com/microsoft/vcpkg/blob/master/docs/users/manifests.md)
+### 3. Build the superbuild with the new extension
 
-2. Build and install the project
+This will make `SimpleHumanoidController` available in your mc\_rtc installation.
 
-3. Run using your [mc_rtc] interface of choice, and setting `Enabled` to `MyController`
+### 4. Enable the controller in mc\_rtc configuration
 
-[mc_rtc]: https://jrl-umi3218.github.io/mc_rtc/
+Edit your mc\_rtc configuration file (Linux: `$HOME/.config/mc_rtc/mc_rtc.yaml`):
+
+```yaml
+MainRobot: JVRC1
+Enabled:
+  - SimpleHumanoidController
+```
+
+---
+
+## Running the Controller
+
+Open **two terminals** in the development container or on your system.
+
+**Terminal 1 – Launch the display:**
+
+```bash
+ros2 launch mc_rtc_ticker display.launch
+```
+
+**Terminal 2 – Run the controller:**
+
+```bash
+mc_rtc_ticker
+```
+
+---
+
+## Demo Video
+
+📹 *Coming soon* — A short video demonstrating the controller in action will be added here.
+
+---
+
+## Requirements
+
+* [mc-rtc-superbuild](https://github.com/mc-rtc/mc-rtc-superbuild) (and dependencies)
+* Tested on **Ubuntu 22.04 (Jammy)** using the official mc\_rtc devcontainer
+
+---
+
+## License
+
+This project is licensed under the MIT License.
+
+---

@@ -21,7 +21,7 @@ The controller continuously cycles through the following actions:
 
 ## Installation
 
-### 1. Prepare the mc\_rtc development environment
+### 1. Prepare the `mc_rtc` development environment
 
 Follow the [mc-rtc-superbuild devcontainer setup guide](https://github.com/mc-rtc/mc-rtc-superbuild/blob/main/doc/devcontainer.md) to setup the development environment.
 
@@ -30,18 +30,19 @@ Follow the [mc-rtc-superbuild devcontainer setup guide](https://github.com/mc-rt
 Follow the instructions below to clone this repository as an `mc-rtc-superbuild` extension. Be sure to use the correct path to your superbuild directory.
 
 ```bash
-mkdir -p <path>/mc-rtc-superbuild/extensions/local/
-cd <path>/mc-rtc-superbuild/extensions/local/
+mkdir -p <path>/mc-rtc-superbuild/extensions/
+cd <path>/mc-rtc-superbuild/extensions/
 git clone git@github.com:Ekanshh/simple_humanoid_controller_superbuild.git
 ```
 
 ### 3. Build `mc-rtc-superbuild` with the new extension
 
-Refer to the setup instructions as earlier and build the `mc-rtc-superbuild` with the new extension. A successful build will make `SimpleHumanoidController` available in your mc\_rtc installation.
+Refer to the setup instructions provided earlier and build the `mc-rtc-superbuild` with the new extension. A successful build will make `SimpleHumanoidController` available in your `mc_rtc` installation.
 
-### 4. Enable the controller in mc\_rtc configuration
+### 4. Enable the controller in `mc_rtc` configuration
 
-Now, edit your mc\_rtc configuration file (Linux: `$HOME/.config/mc_rtc/mc_rtc.yaml`) to enable the controller:
+Now, edit your `mc_rtc` configuration file (Linux: `$HOME/.config/mc_rtc/mc_rtc.yaml`
+(inside your development container)) to enable the controller:
 
 ```yaml
 MainRobot: JVRC1
@@ -53,7 +54,7 @@ Enabled:
 
 ## Running the Controller
 
-Open **two terminals** in the development container or on your system.
+Open **two terminals** in your development container environment.
 
 **Terminal 1 – Launch the display:**
 
@@ -80,7 +81,7 @@ mc_rtc_ticker
 ## Requirements
 
 * [mc-rtc-superbuild](https://github.com/mc-rtc/mc-rtc-superbuild) (and dependencies)
-* Tested on **Ubuntu 22.04 (Jammy)** using the official mc\_rtc devcontainer
+* Tested on **Ubuntu 22.04 (Jammy)** using the official `mc_rtc` devcontainer
 
 ---
 

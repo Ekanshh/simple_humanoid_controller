@@ -16,13 +16,13 @@ void SimpleHumanoidController_BaseMoveHand::configure(const mc_rtc::Configuratio
 
 void SimpleHumanoidController_BaseMoveHand::start(mc_control::fsm::Controller & ctl)
 {
-  if(target_pos_ != Eigen::Vector3d::Zero() && target_quat_.coeffs() != Eigen::Vector4d::Zero())
+  if(ctl.datastore().has(hand_pose_key_))
   {
-    target_ = sva::PTransformd(target_quat_, target_pos_);
+    target_ = ctl.datastore().get<sva::PTransformd>(hand_pose_key_);
   }
   else
   {
-    target_ = ctl.datastore().get<sva::PTransformd>(hand_pose_key_);
+    target_ = sva::PTransformd(target_quat_, target_pos_);
   }
 
   transform_task_ = std::make_shared<mc_tasks::TransformTask>(hand_frame_id_, ctl.robots(), 0);

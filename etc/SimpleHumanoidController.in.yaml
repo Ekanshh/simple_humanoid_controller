@@ -56,6 +56,7 @@ states:
         weight: 100
         stiffness: 1
 
+  # Look at states
   SimpleHumanoidController::LookForward:
     base: MetaTasks
     tasks:
@@ -109,6 +110,7 @@ states:
         target:
           frame: RightGripper
 
+  # Move hand states defining target poses/keys
   SimpleHumanoidController::MoveLeftHandToInitial:
     base: SimpleHumanoidController_BaseMoveHand
     hand_frame_id: LeftGripper
@@ -135,53 +137,55 @@ states:
     target_quat: [0, 0.7, 0, 0.7]
     transform_task_name: MoveRightHandToTarget
 
-  SimpleHumanoidController::LeftHandToTarget:
+  # Parallel execution states for move both hands
+  SimpleHumanoidController::MoveBothHandsToTarget:
     base: Parallel
-    states: ["SimpleHumanoidController::MoveLeftHandToTarget", "SimpleHumanoidController::LookAtLeftHand"]
+    states: ["SimpleHumanoidController::MoveLeftHandToTarget", "SimpleHumanoidController::MoveRightHandToTarget"]
 
-  SimpleHumanoidController::RightHandToTarget:
+  SimpleHumanoidController::MoveBothHandsToInitial:
     base: Parallel
-    states: ["SimpleHumanoidController::MoveRightHandToTarget", "SimpleHumanoidController::LookAtRightHand"]
+    states: ["SimpleHumanoidController::MoveLeftHandToInitial", "SimpleHumanoidController::MoveRightHandToInitial"]
 
-  SimpleHumanoidController::LeftHandToInitial:
-    base: Parallel
-    states: ["SimpleHumanoidController::MoveLeftHandToInitial", "SimpleHumanoidController::LookAtLeftHand"]
-
-  SimpleHumanoidController::RightHandToInitial:
-    base: Parallel
-    states: ["SimpleHumanoidController::MoveRightHandToInitial", "SimpleHumanoidController::LookAtRightHand"]
-
-  SimpleHumanoidController::BothHandsToTarget:
-    base: Parallel
-    states:
-      [
-        "SimpleHumanoidController::MoveLeftHandToTarget",
-        "SimpleHumanoidController::MoveRightHandToTarget",
-        "SimpleHumanoidController::LookForward",
-      ]
-
-  SimpleHumanoidController::BothHandsToInitial:
-    base: Parallel
-    states:
-      [
-        "SimpleHumanoidController::MoveLeftHandToInitial",
-        "SimpleHumanoidController::MoveRightHandToInitial",
-        "SimpleHumanoidController::LookForward",
-      ]
-
-  SimpleHumanoidController::ExecuteFSM:
+  # Meta states for hand movements to target and return
+  SimpleHumanoidController::MoveLeftHandMeta:
     base: Meta
     transitions:
-      - [SimpleHumanoidController::LeftHandToTarget, OK, SimpleHumanoidController::LeftHandToInitial, Auto]
-      - [SimpleHumanoidController::LeftHandToInitial, OK, SimpleHumanoidController::RightHandToTarget, Auto]
-      - [SimpleHumanoidController::RightHandToTarget, OK, SimpleHumanoidController::RightHandToInitial, Auto]
-      - [SimpleHumanoidController::RightHandToInitial, OK, SimpleHumanoidController::BothHandsToTarget, Auto]
-      - [SimpleHumanoidController::BothHandsToTarget, OK, SimpleHumanoidController::BothHandsToInitial, Auto]
-      - [SimpleHumanoidController::BothHandsToInitial, OK, SimpleHumanoidController::LeftHandToTarget, Auto]
+      - [SimpleHumanoidController::MoveLeftHandToTarget, OK, SimpleHumanoidController::MoveLeftHandToInitial, Auto]
 
+  SimpleHumanoidController::MoveRightHandMeta:
+    base: Meta
+    transitions:
+      - [SimpleHumanoidController::MoveRightHandToTarget, OK, SimpleHumanoidController::MoveRightHandToInitial, Auto]
+
+  SimpleHumanoidController::MoveBothHandsMeta:
+    base: Meta
+    transitions:
+      - [SimpleHumanoidController::MoveBothHandsToTarget, OK, SimpleHumanoidController::MoveBothHandsToInitial, Auto]
+
+  # Parallel execution states for move and look
+  SimpleHumanoidController::MoveAndLookRightHand:
+    base: Parallel
+    states: ["SimpleHumanoidController::MoveRightHandMeta", "SimpleHumanoidController::LookAtRightHand"]
+
+  SimpleHumanoidController::MoveAndLookLeftHand:
+    base: Parallel
+    states: ["SimpleHumanoidController::MoveLeftHandMeta", "SimpleHumanoidController::LookAtLeftHand"]
+
+  SimpleHumanoidController::MoveAndLookBothHands:
+    base: Parallel
+    states: ["SimpleHumanoidController::MoveBothHandsMeta", "SimpleHumanoidController::LookForward"]
+
+  # Demo
+  SimpleHumanoidController::DemoMeta:
+    base: Meta
+    transitions:
+      - ["SimpleHumanoidController::MoveAndLookLeftHand", OK, "SimpleHumanoidController::MoveAndLookRightHand", Auto]
+      - ["SimpleHumanoidController::MoveAndLookRightHand", OK, "SimpleHumanoidController::MoveAndLookBothHands", Auto]
+
+  # Demo stable
   SimpleHumanoidController::Demo:
     base: Parallel
-    states: ["SimpleHumanoidController::BaseStabilize", "SimpleHumanoidController::ExecuteFSM"]
+    states: ["SimpleHumanoidController::BaseStabilize", "SimpleHumanoidController::DemoMeta"]
 
 transitions:
   - [SimpleHumanoidController::Demo, OK, SimpleHumanoidController::Demo, Auto]

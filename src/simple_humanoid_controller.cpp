@@ -5,8 +5,6 @@ SimpleHumanoidController::SimpleHumanoidController(mc_rbdyn::RobotModulePtr rm,
                                                    const mc_rtc::Configuration & config)
 : mc_control::fsm::Controller(rm, dt, config)
 {
-  read_and_store_left_hand_initial_pose();
-  read_and_store_right_hand_initial_pose();
 }
 
 bool SimpleHumanoidController::run()
@@ -17,6 +15,9 @@ bool SimpleHumanoidController::run()
 void SimpleHumanoidController::reset(const mc_control::ControllerResetData & reset_data)
 {
   mc_control::fsm::Controller::reset(reset_data);
+
+  read_and_store_left_hand_initial_pose();
+  read_and_store_right_hand_initial_pose();
 }
 
 void SimpleHumanoidController::read_and_store_left_hand_initial_pose()

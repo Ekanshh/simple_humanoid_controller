@@ -1,12 +1,12 @@
 # Simple Humanoid Controller
 
-This project implements a simple (FSM-based) controller for the **JVRC-1 humanoid robot** using the [mc\_rtc](https://jrl-umi3218.github.io/mc_rtc/) framework. It performs a predefined sequence of arm and gaze movements for demonstration and testing purposes.
+This project implements a simple (FSM-based) controller for the **JVRC-1 humanoid robot** using the [mc\_rtc](https://jrl-umi3218.github.io/mc_rtc/) framework.
 
 ---
 
 ## Overview
 
-The controller continuously cycles through the following actions:
+The `SimpleHumanoidController` controller continuously cycles through the following actions:
 
 1. Move the **left hand** to a target pose, then return it to its initial pose.
 2. Move the **right hand** to a target pose, then return it to its initial pose.
@@ -16,6 +16,8 @@ The controller continuously cycles through the following actions:
 
 * When a single hand is moving, the robot looks at that hand.
 * When both hands are moving together, the robot looks straight ahead.
+
+In addition, the controller enforces **left and right foot contacts**, **self-collision avoidance**, **joint constraints**, and the **equation of motion**.
 
 ---
 
@@ -30,19 +32,17 @@ Follow the [mc-rtc-superbuild devcontainer setup guide](https://github.com/mc-rt
 Follow the instructions below to clone this repository as an `mc-rtc-superbuild` extension. Be sure to use the correct path to your superbuild directory.
 
 ```bash
-mkdir -p <path>/mc-rtc-superbuild/extensions/
 cd <path>/mc-rtc-superbuild/extensions/
 git clone git@github.com:Ekanshh/simple_humanoid_controller_superbuild.git
 ```
 
 ### 3. Build `mc-rtc-superbuild` with the new extension
 
-Refer to the setup instructions provided earlier and build the `mc-rtc-superbuild` with the new extension. A successful build will make `SimpleHumanoidController` available in your `mc_rtc` installation.
+Refer to the superbuild instructions to build the `mc-rtc-superbuild`. A successful build will make `SimpleHumanoidController` available in your `mc_rtc` installation.
 
 ### 4. Enable the controller in `mc_rtc` configuration
 
-Now, edit your `mc_rtc` configuration file (Linux: `$HOME/.config/mc_rtc/mc_rtc.yaml`
-(inside your development container)) to enable the controller:
+Create the `mc_rtc` configuration file at `$HOME/.config/mc_rtc/mc_rtc.yaml` to enable the controller:
 
 ```yaml
 MainRobot: JVRC1
@@ -81,7 +81,7 @@ mc_rtc_ticker
 ## Requirements
 
 * [mc-rtc-superbuild](https://github.com/mc-rtc/mc-rtc-superbuild) (and dependencies)
-* Tested on **Ubuntu 22.04 (Jammy)** using the official `mc_rtc` devcontainer
+* Tested on **Ubuntu 22.04 (Jammy)**
 
 ---
 

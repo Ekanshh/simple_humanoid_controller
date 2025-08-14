@@ -21,7 +21,22 @@ constraints:
   - type: dynamics # Handle dynamics constraints (equation of motion) for a robot
     damper: [0.1, 0.01, 0.5]
   - type: compoundJoint #  Enforces mechanical coupling between linked joints as defined in the robot model
+  - type: collision
+    r1Index: 0
+    r2Index: 0
     useCommon: true
+    automaticMonitor: true
+    collisions: # Explicit collision pairs for self-collision monitoring test (add more pairs as needed)
+      - body1: L_WRIST_Y_S
+        body2: WAIST_R_S
+        iDist: 0.5
+        sDist: 0.02
+        damping: 0.0
+      - body1: R_WRIST_Y_S
+        body2: WAIST_R_S
+        iDist: 0.5
+        sDist: 0.02
+        damping: 0.0
 
 # Setup foot contacts
 contacts:

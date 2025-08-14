@@ -5,6 +5,7 @@ SimpleHumanoidController::SimpleHumanoidController(mc_rbdyn::RobotModulePtr rm,
                                                    const mc_rtc::Configuration & config)
 : mc_control::fsm::Controller(rm, dt, config)
 {
+  validate_and_store_target_pose_configs(config);
 }
 
 bool SimpleHumanoidController::run()
@@ -16,18 +17,68 @@ void SimpleHumanoidController::reset(const mc_control::ControllerResetData & res
 {
   mc_control::fsm::Controller::reset(reset_data);
 
-  read_and_store_left_hand_initial_pose();
-  read_and_store_right_hand_initial_pose();
+  initialize_target_poses();
 }
 
-void SimpleHumanoidController::read_and_store_left_hand_initial_pose()
+void SimpleHumanoidController::validate_and_store_target_pose_configs(const mc_rtc::Configuration & config)
 {
-  auto left_hand_initial_pose = robot().surfacePose(left_hand_frame_id_);
-  datastore().make<sva::PTransformd>(left_hand_initial_pose_key_, left_hand_initial_pose);
+  if(!(config.has("target_poses")))
+  {
+    mc_rtc::log::error_and_throw("No 'target_poses' found in configuration");
+  }
+
+  const auto & pose_configs_tmp = config("target_poses");
+
+  for(const auto & pose_name : pose_configs_tmp.keys())
+  {
+    const auto & pose_config = pose_configs_tmp(pose_name);
+
+    if(!pose_config.has("frame"))
+    {
+      mc_rtc::log::error_and_throw("Target pose '{}' is missing required key 'frame'", pose_name);
+    }
+
+    const auto frame = pose_config("frame");
+    if(!robot().hasFrame(frame))
+    {
+      mc_rtc::log::error_and_throw("Frame '{}' not found for pose '{}'", frame, pose_name);
+    }
+
+    const bool has_translation_rotation = pose_config.has("translation") && pose_config.has("rotation");
+    const bool use_initial = pose_config.has("useInitial") && pose_config("useInitial", false);
+    if(!has_translation_rotation && !use_initial)
+    {
+      mc_rtc::log::error_and_throw("Target pose '{}' must have either 'useInitial' true or 'translation' + 'rotation'",
+                                   pose_name);
+    }
+
+    datastore().make<TargetPose>(pose_name);
+    pose_configs_[pose_name] = pose_config;
+  }
 }
 
-void SimpleHumanoidController::read_and_store_right_hand_initial_pose()
+void SimpleHumanoidController::initialize_target_poses()
 {
-  auto right_hand_initial_pose = robot().surfacePose(right_hand_frame_id_);
-  datastore().make<sva::PTransformd>(right_hand_initial_pose_key_, right_hand_initial_pose);
+  for(const auto & [pose_name, pose_config] : pose_configs_)
+  {
+    sva::PTransformd pose;
+    const std::string frame = pose_config("frame");
+    const bool use_initial = pose_config("useInitial", false);
+
+    if(use_initial)
+    {
+      pose = robot().frame(frame).position();
+
+      mc_rtc::log::info("Using initial pose for frame '{}' and pose '{}'", frame, pose);
+    }
+    else
+    {
+      const Eigen::Vector3d translation = pose_config("translation");
+      const Eigen::Quaterniond rotation = pose_config("rotation");
+
+      pose = sva::PTransformd(rotation, translation);
+    }
+
+    datastore().get<TargetPose>(pose_name) = TargetPose{frame, pose};
+  }
 }

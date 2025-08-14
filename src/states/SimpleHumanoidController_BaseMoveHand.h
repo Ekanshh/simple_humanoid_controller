@@ -18,14 +18,8 @@ private:
   double damping_ = 20.0;
   double eval_threshold_ = 0.5;
   double speed_threshold_ = 1e-4;
-  std::string hand_frame_id_;
-  std::string hand_pose_key_;
-  Eigen::Vector3d target_pos_;
-  Eigen::Quaterniond target_quat_;
-  sva::PTransformd target_;
-  std::string transform_task_name_;
-
+  std::string task_name_;
+  std::string target_pose_key_;
   std::shared_ptr<mc_tasks::TransformTask> transform_task_;
-
   bool task_completed_ = false;
 };

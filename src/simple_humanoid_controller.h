@@ -4,6 +4,12 @@
 #include <mc_control/mc_controller.h>
 #include "api.h"
 
+struct TargetPose
+{
+  std::string frame;
+  sva::PTransformd pose;
+};
+
 struct SimpleHumanoidController_DLLAPI SimpleHumanoidController : public mc_control::fsm::Controller
 {
   SimpleHumanoidController(mc_rbdyn::RobotModulePtr rm, double dt, const mc_rtc::Configuration & config);
@@ -11,11 +17,8 @@ struct SimpleHumanoidController_DLLAPI SimpleHumanoidController : public mc_cont
   void reset(const mc_control::ControllerResetData & reset_data) override;
 
 private:
-  void read_and_store_left_hand_initial_pose();
-  void read_and_store_right_hand_initial_pose();
+  void validate_and_store_target_pose_configs(const mc_rtc::Configuration & config);
+  void initialize_target_poses();
 
-  const std::string left_hand_frame_id_;
-  const std::string right_hand_frame_id_;
-  const std::string left_hand_initial_pose_key_;
-  const std::string right_hand_initial_pose_key_;
+  std::map<std::string, mc_rtc::Configuration> pose_configs_;
 };

@@ -55,6 +55,22 @@ jvrc1:
     stiffness: 1.0
     weight: 10.0
 
+target_poses:
+  left_hand_init_pose:
+    frame: LeftGripper
+    useInitial: true
+  right_hand_init_pose:
+    frame: RightGripper
+    useInitial: true
+  left_hand_target_pose:
+    frame: LeftGripper
+    translation: [0.5, 0.25, 1.1]
+    rotation: [0.0, 0.7, 0.0, 0.7] # w, x, y, z
+  right_hand_target_pose:
+    frame: RightGripper
+    translation: [0.5, -0.25, 1.1]
+    rotation: [0.0, 0.7, 0.0, 0.7] # w, x, y, z
+
 # FSM states
 states:
   SimpleHumanoidController::BaseStabilize:
@@ -126,29 +142,23 @@ states:
 
   SimpleHumanoidController::MoveLeftHandToInitial:
     base: SimpleHumanoidController_BaseMoveHand
-    hand_frame_id: LeftGripper
-    hand_pose_key: LeftHandInitialPose
-    transform_task_name: MoveLeftHandToInitial
+    target_pose_key: left_hand_init_pose
+    task_name: MoveLeftHandToInitial
 
   SimpleHumanoidController::MoveLeftHandToTarget:
     base: SimpleHumanoidController_BaseMoveHand
-    hand_frame_id: LeftGripper
-    target_pos: [0.5, 0.25, 1.1]
-    target_quat: [0, 0.7, 0, 0.7]
-    transform_task_name: MoveLeftHandToTarget
+    target_pose_key: left_hand_target_pose
+    task_name: MoveLeftHandToTarget
 
   SimpleHumanoidController::MoveRightHandToInitial:
     base: SimpleHumanoidController_BaseMoveHand
-    hand_frame_id: RightGripper
-    hand_pose_key: RightHandInitialPose
-    transform_task_name: MoveRightHandToInitial
+    target_pose_key: right_hand_init_pose
+    task_name: MoveRightHandToInitial
 
   SimpleHumanoidController::MoveRightHandToTarget:
     base: SimpleHumanoidController_BaseMoveHand
-    hand_frame_id: RightGripper
-    target_pos: [0.5, -0.25, 1.1]
-    target_quat: [0, 0.7, 0, 0.7]
-    transform_task_name: MoveRightHandToTarget
+    target_pose_key: right_hand_target_pose
+    task_name: MoveRightHandToTarget
 
   SimpleHumanoidController::LeftHandToTarget:
     base: Parallel

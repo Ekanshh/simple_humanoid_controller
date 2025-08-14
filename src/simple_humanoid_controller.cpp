@@ -68,8 +68,6 @@ void SimpleHumanoidController::initialize_target_poses()
     if(use_initial)
     {
       pose = robot().frame(frame).position();
-
-      mc_rtc::log::info("Using initial pose for frame '{}' and pose '{}'", frame, pose);
     }
     else
     {

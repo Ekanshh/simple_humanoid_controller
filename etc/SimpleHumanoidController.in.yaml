@@ -22,8 +22,8 @@ constraints:
     damper: [0.1, 0.01, 0.5]
   - type: compoundJoint #  Enforces mechanical coupling between linked joints as defined in the robot model
   - type: collision
-    r1Index: 0
-    r2Index: 0
+    r1: jvrc1
+    r2: jvrc1
     useCommon: true
     automaticMonitor: true
     collisions: # Explicit collision pairs for self-collision monitoring test (add more pairs as needed)

@@ -6,7 +6,7 @@ This project implements a simple (FSM-based) controller for the **JVRC-1 humanoi
 
 ## Overview
 
-The `SimpleHumanoidController` controller continuously cycles through the following actions:
+The controller ( `SimpleHumanoidController` ) continuously cycles through the following actions:
 
 1. Move the **left hand** to a target pose, then return it to its initial pose.
 2. Move the **right hand** to a target pose, then return it to its initial pose.
@@ -72,9 +72,11 @@ mc_rtc_ticker
 
 ## Demo Video
 
-<sub><em>The demo showcases the robot executing the controller sequence at 2× speed. Click to download and watch!</em></sub>
+The demo GIF showcases the controller's functionality in action.
 
-[![Demo Video](media/demo_2x.png)](media/demo_2x.webm)
+[![Demo GIF](media/demo_2x.gif)](media/demo_2x.webm)  
+
+You can also download an extensive video of the same here: [Download Video](media/demo_2x.webm)
 
 ---
 
